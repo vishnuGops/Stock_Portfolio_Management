@@ -1,25 +1,33 @@
+# IMPORT THE LIBRARY
 import yfinance as yf
-import pandas as pd
+from datetime import datetime
+import finplot as fplt
 
-# Define a list of stock symbols
-stock_symbols = ["AAPL", "GOOGL", "TSLA", "MSFT", "AMZN"]
 
-# Create an empty DataFrame to store the stock data
-stock_data = pd.DataFrame(columns=["Symbol", "Price", "Change", "Change %"])
+def get_data():
+    # CREATE TICKER INSTANCE FOR AMAZON
+    amzn = yf.Ticker("TSLA")
 
-# Fetch data for each stock symbol and populate the DataFrame
-for symbol in stock_symbols:
-    stock = yf.Ticker(symbol)
-    data = stock.history(period="1d")
+    # GET TODAYS DATE AND CONVERT IT TO A STRING WITH YYYY-MM-DD FORMAT (YFINANCE EXPECTS THAT FORMAT)
+    end_date = datetime.now().strftime('%Y-%m-%d')
+    amzn_hist = amzn.history(start='2018-01-01', end=end_date)
+    print(amzn_hist)
 
-    if not data.empty:
-        price = data["Close"].iloc[0]
-        change = price - data["Open"].iloc[0]
-        change_percent = (change / data["Open"].iloc[0]) * 100
-        new_data = pd.DataFrame({"Symbol": [symbol], "Price": [price], "Change": [
-                                change], "Change %": [change_percent]})
-        stock_data = pd.concat([stock_data, new_data],
-                               ignore_index=True, sort=False)
 
-# Display the stock data in a table
-print(stock_data)
+def plot_graph(ticker):
+    # RETRIEVE 1 YEAR WORTH OF DAILY DATA OF TESLA
+    end_date = datetime.now().strftime('%Y-%m-%d')
+    df = ticker.history(interval='1d', period='1y')
+
+    # PLOT THE OHLC CANDLE CHART
+    fplt.candlestick_ochl(df[['Open', 'Close', 'High', 'Low']])
+    fplt.show()
+
+
+def main():
+    get_data()
+    plot_graph(yf.Ticker('SPY'))
+
+
+if __name__ == "__main__":
+    main()
